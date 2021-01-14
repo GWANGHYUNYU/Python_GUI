@@ -1,6 +1,8 @@
 import os
 import tkinter.ttk as ttk
-from tkinter import *
+from tkinter import *   #__all__
+from tkinter import filedialog
+import tkinter.messagebox as msgbox
 import time
 
 root = Tk()
@@ -10,10 +12,51 @@ root.title("Gwanghyun GUI")
 file_frame = Frame(root)
 file_frame.pack(fill="x")
 
-btn_add_file = Button(file_frame, padx=5, pady=5, width=12, text="파일 추가")
+# 파일 추가
+def add_file():
+    files = filedialog.askopenfilenames(title="이미지 파일을 선택하세요",
+                                        filetypes=(("PNG 파일", "*.png"), ("모든 파일", "*.*")),
+                                        initialdir=os.getcwd())   # 최초에 C:/ 경로를 보여줌
+    # 사용자가 선택한 파일 목록
+    for file in files:
+        list_file.insert(END, file)
+
+# 파일 삭제
+def del_file():
+    # print(list_file.curselection())
+    for index in reversed(list_file.curselection()):
+        list_file.delete(index)
+
+# 저장 경로
+def browse_path():
+    folder_selected = filedialog.askdirectory(initialdir=os.getcwd())
+    if folder_selected is None: # 사용자가 취소를 누를 때
+        return
+    # print(folder_selected)
+    e.delete(0, END)
+    e.insert(0, folder_selected)
+
+# 시작
+def start():
+    # 각 옵션들 값을 확인
+    print("가로넓이 : ", list_opt_1.get())
+    print("간격 : ", list_opt_2.get())
+    print("포맷 : ", list_opt_3.get())
+    
+    # 파일 목록 확인
+    if list_file.size() == 0:
+        msgbox.showwarning("경고", "이미지 파일을 추가하세요")
+        return
+    
+    if len(e.get()) == 0:
+        msgbox.showwarning("경고", "저장 경로를 설정하세요")
+        return
+    
+
+btn_add_file = Button(file_frame, padx=5, pady=5, width=12, text="파일 추가", command=add_file)
 btn_add_file.pack(side="left", padx=5, pady=5)
 
-btn_del_file = Button(file_frame, padx=5, pady=5, width=12, text="파일 삭제")
+btn_del_file = Button(file_frame, padx=5, pady=5, width=12, text="파일 삭제", command=del_file)
 btn_del_file.pack(side="right", padx=5, pady=5)
 
 # 리스트 프레임
@@ -34,7 +77,7 @@ save_path_frame.pack(fill="x", ipady=5)
 e = Entry(save_path_frame)   #높이 변경
 e.pack(side="left", fill="x", expand=True, padx=5, pady=5, ipady=4)
 
-btn_search_file = Button(save_path_frame, width=10, text="찾아보기")
+btn_search_file = Button(save_path_frame, width=10, text="찾아보기", command=browse_path)
 btn_search_file.pack(side="right", padx=5, pady=5)
 
 # 옵션 프레임
@@ -81,7 +124,7 @@ btn_frame.pack(fill="x", padx=5, pady=5)
 btn_end = Button(btn_frame, padx=5, pady=5, width=12, text="닫기", command=root.quit)
 btn_end.pack(side="right", padx=5, pady=5)
 
-btn_start = Button(btn_frame, padx=5, pady=5, width=12, text="시작")
+btn_start = Button(btn_frame, padx=5, pady=5, width=12, text="시작", command=start)
 btn_start.pack(side="right")
 
 root.resizable(False, False)    # x(너비), y(높이) 값 변경 불가 (창 크기 변경 불가)
