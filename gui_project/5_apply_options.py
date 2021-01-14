@@ -34,7 +34,7 @@ def del_file():
 # 저장 경로
 def browse_path():
     folder_selected = filedialog.askdirectory(initialdir=os.getcwd())
-    if folder_selected is None:  # 사용자가 취소를 누를 때
+    if folder_selected == '':  # 사용자가 취소를 누를 때
         return
     # print(folder_selected)
     e.delete(0, END)
@@ -44,70 +44,72 @@ def merge_image():
     # print("가로넓이 : ", list_opt_1.get())
     # print("간격 : ", list_opt_2.get())
     # print("포맷 : ", list_opt_3.get())
+    try:
+        # 가로넓이
+        img_width = list_opt_1.get()
+        if img_width == "원본유지":
+            img_width = -1  # -1 일때는 원본 기준으로
+        else:
+            img_width = int(img_width)
 
-    # 가로넓이
-    img_width = list_opt_1.get()
-    if img_width == "원본유지":
-        img_width = -1  # -1 일때는 원본 기준으로
-    else:
-        img_width = int(img_width)
+        # 간격
+        img_space = list_opt_2.get()
+        if img_space == "좁게":
+            img_space = 30
+        elif img_space == "보통":
+            img_space = 60
+        elif img_space == "넓게":
+            img_space = 90
+        else: # 없음
+            img_space = 0
 
-    # 간격
-    img_space = list_opt_2.get()
-    if img_space == "좁게":
-        img_space = 30
-    elif img_space == "보통":
-        img_space = 60
-    elif img_space == "넓게":
-        img_space = 90
-    else: # 없음
-        img_space = 0
+        # 포맷
+        img_format = list_opt_3.get().lower()
 
-    # 포맷
-    img_format = list_opt_3.get().lower()
+        images = [Image.open(x) for x in list_file.get(0, END)]
 
-    images = [Image.open(x) for x in list_file.get(0, END)]
-
-    # 이미지 사이즈 리스트에 넣어서 하나씩 처리
-    image_sizes = []    # (width1, height1), (width2, height2), ...]
-    if img_width > -1:
-        image_sizes = [(int(img_width), int(img_width * x.size[1] / x.size[0])) for x in images]
-    else:
-        # 원본 사이즈 사용
-        image_sizes = [(x.size[0], x.size[1]) for x in images]
-
-
-
-    # size -> size[0] : width, size[1] : height
-    widths, heights = zip(*image_sizes)
-
-    # 최대 넓이, 전체 높이 구해옴
-    max_width, total_height = max(widths), sum(heights)
-
-    # 스케치북 준비
-    if img_space > 0:   # 이미지 간격 옵션 적용
-        total_height += (img_space * (len(images) - 1))
-
-    result_img = Image.new("RGB", (max_width, total_height), (255, 255, 255))   # 배경
-    y_offset = 0    # y 위치
-
-    for idx, img in enumerate(images):
-        # width가 원본유지가 아닐 때에는 이미지 크기 조정
+        # 이미지 사이즈 리스트에 넣어서 하나씩 처리
+        image_sizes = []    # (width1, height1), (width2, height2), ...]
         if img_width > -1:
-            img = img.resize(image_sizes[idx])
+            image_sizes = [(int(img_width), int(img_width * x.size[1] / x.size[0])) for x in images]
+        else:
+            # 원본 사이즈 사용
+            image_sizes = [(x.size[0], x.size[1]) for x in images]
 
-        result_img.paste(img, (0, y_offset))
-        y_offset += (img.size[1] + img_space)  # height 값 + 사용자가 지정한 간격
 
-        progress = (idx + 1) / len(images) * 100    # 실제 % 정보 저장
-        p_var.set(progress)
-        progressbar.update()
 
-    # 포맷 옵션 처리
-    file_name = "이미지 합치기." + img_format
-    dest_path = os.path.join(e.get(), file_name)
-    result_img.save(dest_path)
-    msgbox.showinfo("알림", "작업이 완료되었습니다.")
+        # size -> size[0] : width, size[1] : height
+        widths, heights = zip(*image_sizes)
+
+        # 최대 넓이, 전체 높이 구해옴
+        max_width, total_height = max(widths), sum(heights)
+
+        # 스케치북 준비
+        if img_space > 0:   # 이미지 간격 옵션 적용
+            total_height += (img_space * (len(images) - 1))
+
+        result_img = Image.new("RGB", (max_width, total_height), (255, 255, 255))   # 배경
+        y_offset = 0    # y 위치
+
+        for idx, img in enumerate(images):
+            # width가 원본유지가 아닐 때에는 이미지 크기 조정
+            if img_width > -1:
+                img = img.resize(image_sizes[idx])
+
+            result_img.paste(img, (0, y_offset))
+            y_offset += (img.size[1] + img_space)  # height 값 + 사용자가 지정한 간격
+
+            progress = (idx + 1) / len(images) * 100    # 실제 % 정보 저장
+            p_var.set(progress)
+            progressbar.update()
+
+        # 포맷 옵션 처리
+        file_name = "이미지 합치기." + img_format
+        dest_path = os.path.join(e.get(), file_name)
+        result_img.save(dest_path)
+        msgbox.showinfo("알림", "작업이 완료되었습니다.")
+    except Exception as err:
+        msgbox.showerror("에러", err)
 
 # 시작
 def start():
